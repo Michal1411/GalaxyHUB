@@ -31,8 +31,8 @@ MainTab:CreateToggle({
         if autoPick then
             task.spawn(function()
                 while autoPick do
-                    for i = 1, 10 do
-                        local args = {[1] = i}
+                    for i = 1,10 do
+                        local args = {[1]=i}
                         game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("HalloweenWorld_PickUp"):InvokeServer(unpack(args))
                     end
                     task.wait(0.5)
@@ -70,8 +70,8 @@ for _, eggName in ipairs(eggList) do
             if value then
                 task.spawn(function()
                     while eggToggles[eggName] do
-                        for i = 1, 10 do
-                            local args = {[1] = i, [2] = eggName}
+                        for i=1,10 do
+                            local args = {[1]=i,[2]=eggName}
                             game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("HalloweenWorld_PlaceEgg"):InvokeServer(unpack(args))
                         end
                         task.wait(0.5)

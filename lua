@@ -1,121 +1,89 @@
--- PS99-Halloween GUI - Rayfield
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
 
-local Window = Rayfield:CreateWindow({
-    Name = "Galaxy HUB",
-    LoadingTitle = "Galaxy HUB",
-    LoadingSubtitle = "by Galaxy HUB",
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = nil,
-        FileName = "PS99HalloweenConfig"
-    },
-    Discord = {Enabled = false},
-    KeySystem = false
-})
+local player = Players.LocalPlayer
 
-local MainTab = Window:CreateTab("PS99-Halloween")
-
--- ===========================
--- Sekce 1: Auto Pick Pets
--- ===========================
-local autoPick = false
-MainTab:CreateSection("Auto Pick Pets")
-
-MainTab:CreateToggle({
-    Name = "Auto Pick Pets",
-    CurrentValue = false,
-    Flag = "AutoPickPets",
-    Callback = function(value)
-        autoPick = value
-        if autoPick then
-            task.spawn(function()
-                while autoPick do
-                    for i = 1,10 do
-                        local args = {[1]=i}
-                        game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("HalloweenWorld_PickUp"):InvokeServer(unpack(args))
-                    end
-                    task.wait(0.5)
-                end
-            end)
-        end
-    end
-})
-
--- ===========================
--- Sekce 2: Auto Egg
--- ===========================
-MainTab:CreateSection("Auto Egg")
-local eggToggles = {}
-
-local eggList = {
-    "Pumpkin Egg",
-    "Coffin Egg",
-    "Reaper Egg",
-    "Spider Egg",
-    "Cauldron Egg",
-    "Ghost Egg",
-    "Bat Egg",
-    "Grave Egg"
+-- Body trasy
+local points = {
+	Vector3.new(1832, 16, -32046),
+	Vector3.new(1976, 16, -32046),
+	Vector3.new(1976, 16, -32014),
+	Vector3.new(1832, 16, -32014),
+	Vector3.new(1832, 16, -31990),
+	Vector3.new(1976, 16, -31990),
+	Vector3.new(1976, 16, -31965),
+	Vector3.new(1832, 16, -31965),
 }
 
-for _, eggName in ipairs(eggList) do
-    eggToggles[eggName] = false
-    MainTab:CreateToggle({
-        Name = eggName,
-        CurrentValue = false,
-        Flag = eggName.."Toggle",
-        Callback = function(value)
-            eggToggles[eggName] = value
-            if value then
-                task.spawn(function()
-                    while eggToggles[eggName] do
-                        for i=1,10 do
-                            local args = {[1]=i,[2]=eggName}
-                            game:GetService("ReplicatedStorage"):WaitForChild("Network"):WaitForChild("HalloweenWorld_PlaceEgg"):InvokeServer(unpack(args))
-                        end
-                        task.wait(0.5)
-                    end
-                end)
-            end
-        end
-    })
+local enabled = false
+local currentTween
+
+-- GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "AutoWalkGUI"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0, 120, 0, 40)
+button.Position = UDim2.new(0, 10, 1, -50)
+button.Text = "OFF"
+button.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+button.TextColor3 = Color3.new(1,1,1)
+button.Parent = gui
+
+local function moveTo(character, pos)
+	local hrp = character:WaitForChild("HumanoidRootPart")
+
+	local distance = (hrp.Position - pos).Magnitude
+	local speed = 16 -- rychlost
+	local time = distance / speed
+
+	currentTween = TweenService:Create(
+		hrp,
+		TweenInfo.new(time, Enum.EasingStyle.Linear),
+		{CFrame = CFrame.new(pos)}
+	)
+
+	currentTween:Play()
+	currentTween.Completed:Wait()
 end
 
--- ===========================
--- Sekce 3: Auto House
--- ===========================
-MainTab:CreateSection("Auto House")
+local function startLoop()
+	task.spawn(function()
+		local character = player.Character or player.CharacterAdded:Wait()
 
-local function createAutoHouseToggle(name, houseNumber)
-    local toggleValue = false
-    MainTab:CreateToggle({
-        Name = name,
-        CurrentValue = false,
-        Callback = function(value)
-            toggleValue = value
-            if toggleValue then
-                task.spawn(function()
-                    while toggleValue do
-                        local args = {
-                            [1] = 1365,
-                            [2] = "PurchaseEgg",
-                            [3] = houseNumber,
-                            [4] = 3
-                        }
-                        local network = game:GetService("ReplicatedStorage"):WaitForChild("Network")
-                        network:WaitForChild("Plots_Invoke"):InvokeServer(unpack(args))
-                        network:WaitForChild("Index: Request Hatch Count"):InvokeServer()
-                        task.wait(1)
-                    end
-                end)
-            end
-        end
-    })
+		while enabled do
+			character = player.Character or player.CharacterAdded:Wait()
+
+			for _, point in ipairs(points) do
+				if not enabled then
+					if currentTween then
+						currentTween:Cancel()
+					end
+					return
+				end
+
+				moveTo(character, point)
+			end
+			-- automaticky pokračuje znovu od prvního bodu
+		end
+	end)
 end
 
-createAutoHouseToggle("Auto House 1", 1)
-createAutoHouseToggle("Auto House 2", 2)
-createAutoHouseToggle("Auto House 3", 3)
-createAutoHouseToggle("Auto House 4", 4)
-createAutoHouseToggle("Auto House 5", 5)
+button.MouseButton1Click:Connect(function()
+	enabled = not enabled
+
+	if enabled then
+		button.Text = "ON"
+		button.BackgroundColor3 = Color3.fromRGB(50,200,50)
+		startLoop()
+	else
+		button.Text = "OFF"
+		button.BackgroundColor3 = Color3.fromRGB(200,50,50)
+
+		if currentTween then
+			currentTween:Cancel()
+		end
+	end
+end)

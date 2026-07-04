@@ -1,8 +1,8 @@
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 
--- Body trasy
 local points = {
 	Vector3.new(1832, 16, -32046),
 	Vector3.new(1976, 16, -32046),
@@ -30,30 +30,34 @@ button.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 button.TextColor3 = Color3.new(1,1,1)
 button.Parent = gui
 
--- normální chůze
-local function moveTo(character, pos)
-	local humanoid = character:WaitForChild("Humanoid")
-
-	humanoid:MoveTo(pos)
-
-	local reached = humanoid.MoveToFinished:Wait()
-	return reached
+local function getChar()
+	local char = player.Character or player.CharacterAdded:Wait()
+	local hrp = char:WaitForChild("HumanoidRootPart")
+	local hum = char:WaitForChild("Humanoid")
+	return char, hrp, hum
 end
 
--- hlavní smyčka
-local function startLoop()
+-- reálná chůze (bez tweenu a bez MoveToFinished bugů)
+local function walkTo(hrp, hum, target)
+	hum:MoveTo(target)
+
+	while enabled do
+		local dist = (hrp.Position - target).Magnitude
+		if dist < 3 then
+			break
+		end
+		task.wait(0.1)
+	end
+end
+
+local function loop()
 	task.spawn(function()
 		while enabled do
-			local character = player.Character or player.CharacterAdded:Wait()
+			local _, hrp, hum = getChar()
 
 			for _, point in ipairs(points) do
 				if not enabled then return end
-
-				local reached = moveTo(character, point)
-
-				if not reached then
-					break
-				end
+				walkTo(hrp, hum, point)
 			end
 		end
 	end)
@@ -65,7 +69,7 @@ button.MouseButton1Click:Connect(function()
 	if enabled then
 		button.Text = "ON"
 		button.BackgroundColor3 = Color3.fromRGB(50,200,50)
-		startLoop()
+		loop()
 	else
 		button.Text = "OFF"
 		button.BackgroundColor3 = Color3.fromRGB(200,50,50)

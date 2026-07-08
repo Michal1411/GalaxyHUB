@@ -1,105 +1,140 @@
--- Spustí se na straně hráče (LocalScript)
+-- =============================================================================
+-- JUNKIE DEVELOPMENT KEY SYSTEM (GALAXY HUB)
+-- =============================================================================
+local JunkieDev = loadstring(game:HttpGet("https://githubusercontent.com"))()
+
+local Config = {
+    ServiceId = "27720", -- Vaše ID, které vidíte v Junkie panelu
+    ApiKey    = "ZDE_VLOZ_SVOJ_API_KEY_Z_PANELU", -- Váš tajný API klíč z Junkie panelu
+    Provider  = "Junkie"
+}
+
+local KeySystem = JunkieDev:Initialize(Config)
+
+-- Kontrola klíče a HWID (Hráči se ukáže výběr LootLabs / Linkvertise)
+if not KeySystem:Verify() then
+    KeySystem:CopyLink() -- Hráči to automaticky zkopíruje vybraný odkaz do schránky
+    
+    -- Upozornění přímo na herní obrazovce Robloxu
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "GalaxyHUB",
+        Text = "Klíč nenalezen! Odkaz pro získání klíče byl zkopírován.",
+        Duration = 10
+    })
+    return -- Zastaví spuštění skriptu
+end
+
+print("GalaxyHUB: Ověření úspěšné! Spouštím AutoWalk...")
+
+-- =============================================================================
+-- ZDE NÁSLEDUJE VÁŠ PŮVODNÍ AUTOWALK SKRIPT
+-- =============================================================================
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
--- Seznam tvých souřadnic (Waypoints) tak, jak jdou po sobě
 local waypoints = {
     Vector3.new(1832, 16, -32046),
     Vector3.new(1976, 16, -32046),
-    Vector3.new(1976, 16, -32014),
-    Vector3.new(1832, 16, -32014),
-    Vector3.new(1832, 16, -31990),
-    Vector3.new(1976, 16, -31990),
-    Vector3.new(1976, 16, -31965),
-    Vector3.new(1832, 16, -31965),
-    Vector3.new(1832, 16, -32046) -- Návrat na první bod pro opakování
+    Vector3.new(2120, 16, -32046),
+    Vector3.new(2264, 16, -32046),
+    Vector3.new(2408, 16, -32046),
+    Vector3.new(2552, 16, -32046),
+    Vector3.new(2696, 16, -32046),
+    Vector3.new(2840, 16, -32046),
+    Vector3.new(2984, 16, -32046),
+    Vector3.new(3128, 16, -32046),
+    Vector3.new(3272, 16, -32046),
+    Vector3.new(3416, 16, -32046),
+    Vector3.new(3560, 16, -32046),
+    Vector3.new(3704, 16, -32046),
+    Vector3.new(3848, 16, -32046),
+    Vector3.new(3992, 16, -32046),
+    Vector3.new(4136, 16, -32046),
+    Vector3.new(4280, 16, -32046)
 }
 
+local currentWaypointIndex = 1
 local isEnabled = false
+local tweenService = game:GetService("TweenService")
+local character = player.Character or player.CharacterAdded:Wait()
+local rootPart = character:WaitForChild("HumanoidRootPart")
 
--- Funkce, která bezpečně dovede postavu k jednomu bodu
-local function moveToPosition(targetPosition)
-    while isEnabled do
-        local character = player.Character
-        if not character then task.wait(0.5); continue end
-        
-        local humanoid = character:FindFirstChildOfClass("Humanoid")
-        local rootPart = character:FindFirstChild("HumanoidRootPart")
-        
-        if humanoid and rootPart then
-            -- Kontrola, jestli už jsme blízko cíle (na méně než 4 study)
-            if (rootPart.Position - targetPosition).Magnitude < 4 then
-                break
-            end
-            -- Zadání příkazu k chůzi
-            humanoid:MoveTo(targetPosition)
-        end
-        task.wait(0.1) -- Krátká pauza, aby se Roblox nezasekl
-    end
-end
-
--- Hlavní smyčka, která prochází trasu od začátku
-local function startMoving()
-    while isEnabled do
-        for _, point in ipairs(waypoints) do
-            if not isEnabled then break end
-            moveToPosition(point)
-        end
-        task.wait(0.1)
-    end
-end
-
--- --- TVORBA TABULKY / TLAČÍTKA VLEVO DOLE ---
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "AutoWalkGui"
-screenGui.ResetOnSpawn = false -- UI nezmizí, když postava umře
+screenGui.Name = "GalaxyHubGui"
+screenGui.ResetOnSpawn = false
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 140, 0, 50)
-frame.Position = UDim2.new(0, 20, 1, -70) -- Pozice vlevo dole
-frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-frame.BorderSizePixel = 0
+frame.Size = UDim2.new(0, 200, 0, 100)
+frame.Position = UDim2.new(0.5, -100, 0.5, -50)
+frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+frame.Active = true
+frame.Draggable = true
 frame.Parent = screenGui
 
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 8)
-corner.Parent = frame
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(0, 12)
+uiCorner.Parent = frame
 
-local button = Instance.new("TextButton")
-button.Size = UDim2.new(1, -12, 1, -12)
-button.Position = UDim2.new(0, 6, 0, 6)
-button.BackgroundColor3 = Color3.fromRGB(220, 50, 50) -- Výchozí červená (OFF)
-button.Text = "AUTO: OFF"
-button.TextColor3 = Color3.fromRGB(255, 255, 255)
-button.Font = Enum.Font.SourceSansBold
-button.TextSize = 16
-button.Parent = frame
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 160, 0, 40)
+toggleButton.Position = UDim2.new(0.5, -80, 0.5, -20)
+toggleButton.Text = "AutoWalk: OFF"
+toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.Font = Enum.Font.SourceSansBold
+toggleButton.TextSize = 18
+toggleButton.Parent = frame
 
 local buttonCorner = Instance.new("UICorner")
-buttonCorner.CornerRadius = UDim.new(0, 6)
-buttonCorner.Parent = button
+buttonCorner.CornerRadius = UDim.new(0, 8)
+buttonCorner.Parent = toggleButton
 
--- --- LOGIKA ZAPNUTÍ A VYPNUTÍ ---
-button.MouseButton1Click:Connect(function()
-    isEnabled = not isEnabled
+local function moveToNextWaypoint()
+    if not isEnabled then return end
     
-    if isEnabled then
-        button.Text = "AUTO: ON"
-        button.BackgroundColor3 = Color3.fromRGB(50, 220, 50) -- Zelená (ON)
-        task.spawn(startMoving) -- Spustí chůzi ve vlastním procesu od prvního bodu
-    else
-        button.Text = "AUTO: OFF"
-        button.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+    character = player.Character
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        rootPart = character.HumanoidRootPart
+        local targetPosition = waypoints[currentWaypointIndex]
+        local distance = (rootPart.Position - targetPosition).Magnitude
+        local speed = 50 
+        local duration = distance / speed
         
-        -- Okamžitě zastaví postavu na místě, kde zrovna stojí
-        local character = player.Character
-        if character then
-            local humanoid = character:FindFirstChildOfClass("Humanoid")
-            local rootPart = character:FindFirstChild("HumanoidRootPart")
-            if humanoid and rootPart then
-                humanoid:MoveTo(rootPart.Position)
+        local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear)
+        local tween = tweenService:Create(rootPart, tweenInfo, {CFrame = CFrame.new(targetPosition)})
+        
+        tween:Play()
+        tween.Completed:Connect(function(playbackState)
+            if playbackState == Enum.PlaybackState.Completed then
+                currentWaypointIndex = currentWaypointIndex + 1
+                if currentWaypointIndex > #waypoints then
+                    currentWaypointIndex = 1 
+                end
+                if isEnabled then
+                    moveToNextWaypoint()
+                end
             end
-        end
+        end)
+    end
+end
+
+toggleButton.MouseButton1Click:Connect(function()
+    isEnabled = not isEnabled
+    if isEnabled then
+        toggleButton.Text = "AutoWalk: ON"
+        toggleButton.BackgroundColor3 = Color3.fromRGB(50, 200, 50)
+        moveToNextWaypoint()
+    else
+        toggleButton.Text = "AutoWalk: OFF"
+        toggleButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    end
+end)
+
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    rootPart = character:WaitForChild("HumanoidRootPart")
+    if isEnabled then
+        moveToNextWaypoint()
     end
 end)

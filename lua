@@ -5,7 +5,7 @@ local JunkieDev = loadstring(game:HttpGet("https://githubusercontent.com"))()
 
 local Config = {
     ServiceId = "27720", -- Vaše ID, které vidíte v Junkie panelu
-    ApiKey    = "ZDE_VLOZ_SVOJ_API_KEY_Z_PANELU", -- Váš tajný API klíč z Junkie panelu
+    ApiKey    = "aaebe0f5-f5e9-4119-b465-3097ba8e7ce6", -- Váš tajný API klíč z Junkie panelu
     Provider  = "Junkie"
 }
 

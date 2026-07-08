@@ -1,114 +1,9 @@
--- Definuje se hlavní spouštěcí funkce, která se zavolá POUZE při správném klíči
 function load()
-    print("Klíč úspěšný! Načítám GalaxyHub...")
-    
-    local Players = game:GetService("Players")
-    local player = Players.LocalPlayer
-    local tweenService = game:GetService("TweenService")
-
-    local waypoints = {
-        Vector3.new(1832, 16, -32046), Vector3.new(1976, 16, -32046),
-        Vector3.new(2120, 16, -32046), Vector3.new(2264, 16, -32046),
-        Vector3.new(2408, 16, -32046), Vector3.new(2552, 16, -32046),
-        Vector3.new(2696, 16, -32046), Vector3.new(2840, 16, -32046),
-        Vector3.new(2984, 16, -32046), Vector3.new(3128, 16, -32046),
-        Vector3.new(3272, 16, -32046), Vector3.new(3416, 16, -32046),
-        Vector3.new(3560, 16, -32046), Vector3.new(3704, 16, -32046),
-        Vector3.new(3848, 16, -32046), Vector3.new(3992, 16, -32046),
-        Vector3.new(4136, 16, -32046), Vector3.new(4280, 16, -32046)
-    }
-
-    local currentWaypointIndex = 1
-    local isEnabled = false
-    local currentTween = nil
-
-    local character = player.Character or player.CharacterAdded:Wait()
-    local rootPart = character:WaitForChild("HumanoidRootPart")
-
-    local function moveToNextWaypoint()
-        if not isEnabled then return end
-        
-        character = player.Character
-        if character and character:FindFirstChild("HumanoidRootPart") then
-            rootPart = character.HumanoidRootPart
-            local targetPosition = waypoints[currentWaypointIndex]
-            local distance = (rootPart.Position - targetPosition).Magnitude
-            local speed = 50 
-            local duration = distance / speed
-            
-            local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear)
-            currentTween = tweenService:Create(rootPart, tweenInfo, {CFrame = CFrame.new(targetPosition)})
-            
-            currentTween:Play()
-            currentTween.Completed:Connect(function(playbackState)
-                if playbackState == Enum.PlaybackState.Completed then
-                    currentWaypointIndex = currentWaypointIndex + 1
-                    if currentWaypointIndex > #waypoints then
-                        currentWaypointIndex = 1 
-                    end
-                    if isEnabled then
-                        moveToNextWaypoint()
-                    end
-                end
-            end)
-        end
-    end
-
-    -- Načtení moderního WindUI Okna
-    local Window = WindUI:CreateWindow({
-        Title = "Galaxy Hub",
-        Icon = "door-open",
-        Author = "by uerd & .ftgs",
-        Folder = "MySuperHub",
-        Size = UDim2.fromOffset(580, 460),
-        MinSize = Vector2.new(560, 350),
-        MaxSize = Vector2.new(850, 560),
-        Transparent = true,
-        Theme = "Dark",
-        Resizable = true,
-        SideBarWidth = 200,
-        BackgroundImageTransparency = 0.42,
-        HideSearchBar = true,
-        ScrollBarEnabled = false
-    })
-
-    local Tab = Window:Tab({
-        Title = "Hlavní Funkce",
-        Icon = "bird", 
-        Locked = false,
-    })
-
-    -- Přidání Toggle tlačítka přímo do WindUI menu
-    Tab:Toggle({
-        Title = "Auto Walk",
-        Desc = "Automaticky chodí po určených souřadnicích",
-        Value = false,
-        Callback = function(state)
-            isEnabled = state
-            if isEnabled then
-                moveToNextWaypoint()
-            else
-                if currentTween then
-                    currentTween:Cancel() -- Zastaví pohyb ihned po vypnutí
-                end
-            end
-        end
-    })
-
-    -- Ošetření pro případ, že postava umře
-    player.CharacterAdded:Connect(function(newCharacter)
-        character = newCharacter
-        rootPart = character:WaitForChild("HumanoidRootPart")
-        if isEnabled then
-            task.wait(1) -- Malá pauza na respawn
-            moveToNextWaypoint()
-        end
-    end)
+print("leave this blank or put anything")
+warn("made by uerd with ❤")    
 end
-
--- Načtení samotné knihovny WindUI a Key Systému
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
-
+--dont change anything until you know what you do
 WindUI.Services.junkiedev = {
     Name = "Junkie Development",
     Icon = "bug-off",
@@ -128,25 +23,32 @@ WindUI.Services.junkiedev = {
             local keylessCheck = JunkieProtected.IsKeylessMode()
             if keylessCheck and keylessCheck.keyless_mode then
                 print("Keyless mode enabled - Starting script...")
-                load() -- Spustí se v keyless módu
                 return true
             end
 
             local result = JunkieProtected.ValidateKey({ Key = key })
             if result == "valid" then
                 print("Key is valid! Starting script...")
-                load() -- Spustí se při správném klíči
+                load()
+                
+                if _G.JD_IsPremium then
+                    print("🌟 Premium user detected!")
+                else
+                    print("📝 Standard user")
+                end
+                
                 return true
+            else
+                local keyLink = JunkieProtected.GetKeyLink()
+                print("❌ Invalid key!")
+                game.Players.LocalPlayer:Kick("Invalid key. Get one from: " .. keyLink)
+                return false
             end
-
-            local keyLink = JunkieProtected.GetKeyLink()
-            print("❌ Invalid key!")
-            game.Players.LocalPlayer:Kick("Invalid key. Get one from: " .. keyLink)
-            return false
         end
 
         local function copyLink()
             local link = JunkieProtected.GetKeyLink()
+            print("Get your key: " .. link)
             if setclipboard then
                 setclipboard(link)
             end
@@ -159,15 +61,38 @@ WindUI.Services.junkiedev = {
     end
 }
 
--- Inicializace Key Systému před zobrazením menu
-WindUI:KeySystem({
-    Note = "hi, im uerd.",                                     
-    API = {                                                       
-        { 
-            Type = "junkiedev",
-            ServiceId = "realuerd",
-            ApiKey = "e2abcc15-fba3-467e-936a-73aac882af2d",
-            Provider = "tutorial",
-        }    
+--//CONTIUNE HERE!!
+
+local Window = WindUI:CreateWindow({
+    Title = "Galaxy HUB",
+    Icon = "door-open",
+    Author = "by .ftgs and .ftgs",
+    Folder = "Galaxy HUB",
+    Size = UDim2.fromOffset(580, 460),
+    MinSize = Vector2.new(560, 350),
+    MaxSize = Vector2.new(850, 560),
+    Transparent = true,
+    Theme = "Dark",
+    Resizable = true,
+    SideBarWidth = 200,
+    BackgroundImageTransparency = 0.42,
+    HideSearchBar = true,
+    ScrollBarEnabled = false,
+    KeySystem = {                                                               
+        Note = "hi, im uerd.",                     
+        API = {                                                       
+            { 
+                Type = "junkiedev",
+                ServiceId = "realuerd",
+                ApiKey = "aaebe0f5-f5e9-4119-b465-3097ba8e7ce6",
+                Provider = "tutorial",
+            }    
+        }
     }
 })
+local Tab = Window:Tab({
+    Title = "Tab Title",
+    Icon = "bird", 
+    Locked = false,
+})
+

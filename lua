@@ -1,7 +1,7 @@
 -- =============================================================================
 -- JUNKIE DEVELOPMENT KEY SYSTEM (GALAXY HUB)
 -- =============================================================================
-local JunkieDev = loadstring(game:HttpGet("https://githubusercontent.com"))()
+local JunkieDev = loadstring(game:HttpGet("https://junkie-development.de"))()
 
 local Config = {
     ServiceId = "27720", -- Vaše ID, které vidíte v Junkie panelu
